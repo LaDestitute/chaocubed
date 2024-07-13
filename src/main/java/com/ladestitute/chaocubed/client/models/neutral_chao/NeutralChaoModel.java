@@ -4,8 +4,10 @@ import com.ladestitute.chaocubed.client.models.helper.ChaoModel;
 import com.ladestitute.chaocubed.entities.chao.NeutralChaoEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.util.Mth;
 
 public class NeutralChaoModel extends ChaoModel<NeutralChaoEntity> {
 
@@ -23,11 +25,16 @@ public class NeutralChaoModel extends ChaoModel<NeutralChaoEntity> {
 
         if (entity.isInWater())
         {
-            if (entity.swim_points >= 100) {
+            if(entity.getDeltaMovement().lengthSqr() < 0.0001)
+            {
+                setTreadWaterAnimation();
+            }
+            else if (entity.swim_points >= 100) {
 
                     setSwimAnimation1(limbSwing, limbSwingAmount);
 
-            } else {
+            } else
+            {
                 setStruggleSwimAnimation(limbSwing, limbSwingAmount);
             }
         } else {
@@ -40,7 +47,10 @@ public class NeutralChaoModel extends ChaoModel<NeutralChaoEntity> {
 
     @Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+        int tickCount = (int) Minecraft.getInstance().level.getGameTime();
+        applyEmoteballWobble(poseStack, tickCount);
         sphere.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+
         heart.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
         question.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
         spiral.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
@@ -55,5 +65,11 @@ public class NeutralChaoModel extends ChaoModel<NeutralChaoEntity> {
         left_wing.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
         right_foot.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
         head.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+    }
+
+    private void applyEmoteballWobble(PoseStack poseStack, int tickCount) {
+        // Add wobble effect logic
+        float wobbleAmount = Mth.sin((float) (tickCount + Minecraft.getInstance().getFrameTime()) / 10.0F) * 0.05F;
+        poseStack.translate(0.0D, wobbleAmount, 0.0D);
     }
 }

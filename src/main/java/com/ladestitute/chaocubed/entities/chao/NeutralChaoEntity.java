@@ -4,10 +4,12 @@ import com.ladestitute.chaocubed.entities.base.TestAmphiChaoEntity;
 import com.ladestitute.chaocubed.util.ChaoVariant;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.common.NeoForgeMod;
 
 import java.util.Random;
 
@@ -28,6 +30,7 @@ public class NeutralChaoEntity extends TestAmphiChaoEntity {
             this.run_points=100;
         }
         else this.setVariant(ChaoVariant.NORMAL_TWOTONE);
+        this.getAttribute(NeoForgeMod.SWIM_SPEED.value()).setBaseValue(1.0D);
     }
 
     private void rollForShiny() {
@@ -38,10 +41,10 @@ public class NeutralChaoEntity extends TestAmphiChaoEntity {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Mob.createLivingAttributes()
+        return createMobAttributes()
                 .add(Attributes.MAX_HEALTH, TestAmphiChaoEntity.DEFAULT_HEALTH)
                 .add(Attributes.MOVEMENT_SPEED, 0.5D)
-                .add(Attributes.ATTACK_DAMAGE, 1.5D)
+                .add(NeoForgeMod.SWIM_SPEED.value(), 1.0D)
                 .add(Attributes.FOLLOW_RANGE, 48.0);
     }
 

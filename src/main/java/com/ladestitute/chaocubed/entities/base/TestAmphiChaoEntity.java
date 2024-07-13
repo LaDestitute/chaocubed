@@ -1,31 +1,27 @@
 package com.ladestitute.chaocubed.entities.base;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import com.ladestitute.chaocubed.ChaoCubedConfig;
 import com.ladestitute.chaocubed.ChaoCubedMain;
 import com.ladestitute.chaocubed.util.ChaoVariant;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.DebugPackets;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.effect.MobEffectUtil;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
-import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.SmoothSwimmingLookControl;
 import net.minecraft.world.entity.ai.control.SmoothSwimmingMoveControl;
@@ -34,42 +30,33 @@ import net.minecraft.world.entity.ai.navigation.AmphibiousPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
-import net.minecraft.world.entity.animal.axolotl.AxolotlAi;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Map;
 
 public abstract class TestAmphiChaoEntity extends TamableAnimal {
     protected static final ImmutableList<? extends SensorType<? extends Sensor<? super TestAmphiChaoEntity>>> SENSOR_TYPES = ImmutableList.of(
             SensorType.NEAREST_LIVING_ENTITIES, SensorType.NEAREST_ADULT, SensorType.HURT_BY, SensorType.AXOLOTL_ATTACKABLES, SensorType.AXOLOTL_TEMPTATIONS
     );
     protected static final ImmutableList<? extends MemoryModuleType<?>> MEMORY_TYPES = ImmutableList.of(
-            MemoryModuleType.BREED_TARGET,
             MemoryModuleType.NEAREST_LIVING_ENTITIES,
             MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
             MemoryModuleType.NEAREST_VISIBLE_PLAYER,
-            MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER,
             MemoryModuleType.LOOK_TARGET,
             MemoryModuleType.WALK_TARGET,
             MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
             MemoryModuleType.PATH,
             MemoryModuleType.ATTACK_TARGET,
             MemoryModuleType.ATTACK_COOLING_DOWN,
-            MemoryModuleType.NEAREST_VISIBLE_ADULT,
-            MemoryModuleType.HURT_BY_ENTITY,
             MemoryModuleType.NEAREST_ATTACKABLE,
             MemoryModuleType.TEMPTING_PLAYER,
             MemoryModuleType.TEMPTATION_COOLDOWN_TICKS,
@@ -117,12 +104,22 @@ public abstract class TestAmphiChaoEntity extends TamableAnimal {
         super.addAdditionalSaveData(pCompound);
     }
 
-    /**
-     * (abstract) Protected helper method to read subclass entity data from NBT.
-     */
     @Override
     public void readAdditionalSaveData(CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
+    }
+
+    @Override
+    protected void registerGoals() {
+        super.registerGoals();
+        // Add custom goals here if needed
+    }
+
+    @Override
+    public void baseTick() {
+        super.baseTick();
+        int airSupply = this.getAirSupply();
+        this.handleAirSupply(airSupply);
     }
 
     //Brain code starts here
@@ -156,6 +153,7 @@ public abstract class TestAmphiChaoEntity extends TamableAnimal {
         ChaoAi.updateActivity(this);
         this.level().getProfiler().pop();
     }
+
     //Brain code ends here
 
     //Pathfinding code starts here
@@ -168,13 +166,19 @@ public abstract class TestAmphiChaoEntity extends TamableAnimal {
     public void travel(Vec3 pTravelVector) {
         if (this.isInWater()) {
             // Swimming behavior
-            if (this.isControlledByLocalInstance()) {
-                this.moveRelative(this.getSpeed(), pTravelVector);
-                this.move(MoverType.SELF, this.getDeltaMovement());
-                this.setDeltaMovement(this.getDeltaMovement().scale(0.9));
-            } else {
+//            if (this.isControlledByLocalInstance()) {
+//                this.moveRelative(this.getSpeed(), pTravelVector);
+//                this.move(MoverType.SELF, this.getDeltaMovement());
+//                this.setDeltaMovement(this.getDeltaMovement().scale(0.9));
+//            } else {
+//                super.travel(pTravelVector);
+//            }
+            if (this.getRandom().nextFloat() >= 0.2F) {
+                this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.02D, 0.0D)); // Buoyancy for floating
                 super.travel(pTravelVector);
             }
+            this.moveRelative(0.1F, pTravelVector); // Swim
+            super.travel(pTravelVector);
         } else {
             // Behavior when on land
             super.travel(pTravelVector);
@@ -234,12 +238,6 @@ public abstract class TestAmphiChaoEntity extends TamableAnimal {
     //WIP flying and climbing
     //WIP flying and climbing
     //WIP flying and climbing
-    @Override
-    protected void registerGoals() {
-        super.registerGoals();
-        // Add custom goals here if needed
-    }
-
     //todo: still not sure how to implement this?
 //    static class FlyingGoal extends Goal {
 //        private final NeutralChaoEntity entity;
@@ -282,30 +280,58 @@ public abstract class TestAmphiChaoEntity extends TamableAnimal {
     //WIP flying and climbing
 
     //Air supply and breathing AI related code starts here
-    @Override
-    public void baseTick() {
-        int i = this.getAirSupply();
-        super.baseTick();
-        if (!this.isNoAi()) {
-            this.handleAirSupply(i);
+    protected void handleAirSupply(int airSupply) {
+        if (this.isEyeInFluid(FluidTags.WATER)
+                && !this.level().getBlockState(BlockPos.containing(this.getX(), this.getEyeY(), this.getZ())).is(Blocks.BUBBLE_COLUMN)) {
+            boolean canDrown = !this.canBreatheUnderwater() && !MobEffectUtil.hasWaterBreathing(this);
+            if (canDrown) {
+                this.setAirSupply(this.decreaseAirSupply(this.getAirSupply()));
+                if (this.getAirSupply() == -20)
+                {
+                    this.setAirSupply(0);
+                    Vec3 vec3 = this.getDeltaMovement();
+
+                    for (int i = 0; i < 8; ++i) {
+                        double d2 = this.random.nextDouble() - this.random.nextDouble();
+                        double d3 = this.random.nextDouble() - this.random.nextDouble();
+                        double d4 = this.random.nextDouble() - this.random.nextDouble();
+                        this.level().addParticle(ParticleTypes.BUBBLE, this.getX() + d2, this.getY() + d3, this.getZ() + d4, vec3.x, vec3.y, vec3.z);
+                    }
+
+                    this.hurt(this.damageSources().drown(), 2.0F); // Custom drowning damage
+                }
+                if(this.getAirSupply() <= this.getMaxAirSupply() / 3) {
+                    Vec3 motion = this.getDeltaMovement();
+                    this.setDeltaMovement(motion.x, 0.4, motion.z);
+                }
+            }
+
+            if (!this.level().isClientSide && this.isPassenger() && this.getVehicle() != null && this.getVehicle().dismountsUnderwater()) {
+                this.stopRiding();
+            }
+        } else if (this.getAirSupply() < this.getMaxAirSupply()) {
+            this.setAirSupply(this.increaseAirSupply(this.getAirSupply()));
         }
     }
 
-    protected void handleAirSupply(int pAirSupply) {
-        if (this.isAlive() && this.isUnderWater()) {
-            this.setAirSupply(pAirSupply - 1);
-            if (this.getAirSupply() == 0) {
-                this.setAirSupply(0);
-                this.hurt(this.damageSources().dryOut(), 2.0F);
-            }
-        } else {
-            this.setAirSupply(this.getMaxAirSupply());
-        }
+    @Override
+    protected int decreaseAirSupply(int currentAir) {
+        // Custom logic for decreasing air supply
+        int i = EnchantmentHelper.getRespiration(this);
+        return i > 0 && this.random.nextInt(i + 1) > 0 ? currentAir : currentAir - 1;
+    }
+
+    @Override
+    protected int increaseAirSupply(int currentAir) {
+        // Custom logic for increasing air supply, twice as fast on land
+        return this.isInWaterOrBubble()
+                ? Math.min(currentAir + 4, this.getMaxAirSupply())
+                : Math.min(currentAir + 8, this.getMaxAirSupply());
     }
 
     @Override
     public int getMaxAirSupply() {
-        return 3000;
+        return 2400; // Custom max air supply
     }
     //Air supply and breathing AI related code ends here
 
@@ -346,7 +372,7 @@ public abstract class TestAmphiChaoEntity extends TamableAnimal {
 
     @Override
     protected float getStandingEyeHeight(Pose pPose, EntityDimensions pDimensions) {
-        return pDimensions.height * 0.96875F;
+        return pDimensions.height * 1.453125F;
     }
 
     /**

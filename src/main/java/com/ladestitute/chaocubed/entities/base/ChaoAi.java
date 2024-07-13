@@ -89,8 +89,8 @@ public class ChaoAi {
                                         GateBehavior.OrderPolicy.ORDERED,
                                         GateBehavior.RunningPolicy.TRY_ALL,
                                         ImmutableList.of(
-                                                Pair.of(RandomStroll.swim(0.5F), 1), // reduced time in water
-                                                Pair.of(RandomStroll.stroll(0.5F, true), 2), // increased time on land
+                                                Pair.of(RandomStroll.swim(0.63F), 1), // reduced time in water
+                                                Pair.of(RandomStroll.stroll(0.63F, true), 2), // increased time on land
                                                 Pair.of(SetWalkTargetFromLookTarget.create(ChaoAi::canSetWalkTargetFromLookTarget, ChaoAi::getSpeedModifier, 3), 3),
                                                 Pair.of(BehaviorBuilder.triggerIf(Entity::isInWaterOrBubble), 3), // reduced water behavior
                                                 Pair.of(BehaviorBuilder.triggerIf(Entity::onGround), 5)
@@ -118,15 +118,15 @@ public class ChaoAi {
     }
 
     private static float getSpeedModifierChasing(LivingEntity p_149289_) {
-        return 0.5F;
+        return 0.63F;
     }
 
     private static float getSpeedModifierFollowingAdult(LivingEntity p_149295_) {
-        return 0.5F;
+        return 0.63F;
     }
 
     private static float getSpeedModifier(LivingEntity p_149301_) {
-        return 0.5F;
+        return 0.63F;
     }
 
     private static Optional<? extends LivingEntity> findNearestValidAttackTarget(TestAmphiChaoEntity p_149299_) {
