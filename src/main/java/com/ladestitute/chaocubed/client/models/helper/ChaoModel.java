@@ -59,38 +59,38 @@ public abstract class ChaoModel<T extends Entity> extends EntityModel<T> {
         MeshDefinition meshdefinition = new MeshDefinition();
         PartDefinition partdefinition = meshdefinition.getRoot();
 
-        PartDefinition sphere = partdefinition.addOrReplaceChild("sphere", CubeListBuilder.create().texOffs(74, 26).addBox(-1.0F, -26.0F, 1.0F, 2.0F, 2.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 25.0F, -2.0F));
+        PartDefinition sphere = partdefinition.addOrReplaceChild("sphere", CubeListBuilder.create().texOffs(74, 26).addBox(-1.0F, -22.5F, -1.0F, 2.0F, 2.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 21.5F, 0.0F));
 
-        PartDefinition heart = partdefinition.addOrReplaceChild("heart", CubeListBuilder.create(), PartPose.offset(0.0F, 25.0F, -2.0F));
+        PartDefinition heart = partdefinition.addOrReplaceChild("heart", CubeListBuilder.create(), PartPose.offset(0.0F, 21.5F, 0.0F));
 
-        PartDefinition emotiball_r1 = heart.addOrReplaceChild("emotiball_r1", CubeListBuilder.create().texOffs(74, 23).addBox(10.3F, -3.15F, 0.0F, 2.0F, 4.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-11.0F, -37.0F, 1.0F, 0.0F, 0.0F, 0.829F));
+        PartDefinition emotiball_r1 = heart.addOrReplaceChild("emotiball_r1", CubeListBuilder.create().texOffs(74, 23).addBox(10.3F, -3.15F, 0.0F, 2.0F, 4.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-11.0F, -33.5F, -1.0F, 0.0F, 0.0F, 0.829F));
 
-        PartDefinition emotiball_r2 = heart.addOrReplaceChild("emotiball_r2", CubeListBuilder.create().texOffs(74, 25).addBox(8.2F, -0.7F, 0.0F, 4.0F, 2.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-5.0F, -37.0F, 1.0F, 0.0F, 0.0F, 0.829F));
+        PartDefinition emotiball_r2 = heart.addOrReplaceChild("emotiball_r2", CubeListBuilder.create().texOffs(74, 25).addBox(8.2F, -0.7F, 0.0F, 4.0F, 2.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-5.0F, -33.5F, -1.0F, 0.0F, 0.0F, 0.829F));
 
-        PartDefinition emotiball_r3 = heart.addOrReplaceChild("emotiball_r3", CubeListBuilder.create().texOffs(74, 23).addBox(8.0F, -3.0F, 0.0F, 4.0F, 4.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-8.0F, -34.0F, 1.0F, 0.0F, 0.0F, 0.829F));
+        PartDefinition emotiball_r3 = heart.addOrReplaceChild("emotiball_r3", CubeListBuilder.create().texOffs(74, 23).addBox(8.0F, -3.0F, 0.0F, 4.0F, 4.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-8.0F, -30.5F, -1.0F, 0.0F, 0.0F, 0.829F));
 
-        PartDefinition exclamation = partdefinition.addOrReplaceChild("exclamation", CubeListBuilder.create().texOffs(74, 26).addBox(-1.0F, -27.0F, 1.0F, 2.0F, 2.0F, 2.0F, new CubeDeformation(0.0F))
-                .texOffs(74, 22).addBox(-1.0F, -35.0F, 1.0F, 2.0F, 6.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 26.0F, -2.0F));
+        PartDefinition exclamation = partdefinition.addOrReplaceChild("exclamation", CubeListBuilder.create().texOffs(74, 26).addBox(-1.0F, -22.5F, -1.0F, 2.0F, 2.0F, 2.0F, new CubeDeformation(0.0F))
+                .texOffs(74, 22).addBox(-1.0F, -30.5F, -1.0F, 2.0F, 6.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 21.5F, 0.0F));
 
-        PartDefinition question = partdefinition.addOrReplaceChild("question", CubeListBuilder.create().texOffs(74, 26).addBox(-1.0F, -27.0F, 1.0F, 2.0F, 2.0F, 2.0F, new CubeDeformation(0.0F))
-                .texOffs(74, 24).addBox(-1.0F, -33.0F, 1.0F, 2.0F, 4.0F, 2.0F, new CubeDeformation(0.0F))
-                .texOffs(74, 26).addBox(-3.0F, -37.0F, 1.0F, 2.0F, 2.0F, 2.0F, new CubeDeformation(0.0F))
-                .texOffs(74, 26).addBox(-3.0F, -39.0F, 1.0F, 4.0F, 2.0F, 2.0F, new CubeDeformation(0.0F))
-                .texOffs(74, 20).addBox(1.0F, -39.0F, 1.0F, 2.0F, 8.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 26.0F, -2.0F));
+        PartDefinition question = partdefinition.addOrReplaceChild("question", CubeListBuilder.create().texOffs(74, 26).addBox(-1.0F, -22.5F, -1.0F, 2.0F, 2.0F, 2.0F, new CubeDeformation(0.0F))
+                .texOffs(74, 24).addBox(-1.0F, -28.5F, -1.0F, 2.0F, 4.0F, 2.0F, new CubeDeformation(0.0F))
+                .texOffs(74, 26).addBox(-3.0F, -32.5F, -1.0F, 2.0F, 2.0F, 2.0F, new CubeDeformation(0.0F))
+                .texOffs(74, 26).addBox(-3.0F, -34.5F, -1.0F, 4.0F, 2.0F, 2.0F, new CubeDeformation(0.0F))
+                .texOffs(74, 20).addBox(1.0F, -34.5F, -1.0F, 2.0F, 8.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 21.5F, 0.0F));
 
-        PartDefinition spiral = partdefinition.addOrReplaceChild("spiral", CubeListBuilder.create().texOffs(75, 18).addBox(-1.0F, -31.0F, 1.0F, 2.0F, 6.0F, 2.0F, new CubeDeformation(0.0F))
-                .texOffs(75, 20).addBox(-5.0F, -35.0F, -3.0F, 2.0F, 4.0F, 2.0F, new CubeDeformation(0.0F))
-                .texOffs(71, 22).addBox(-1.0F, -31.0F, -1.0F, 6.0F, 2.0F, 2.0F, new CubeDeformation(0.0F))
-                .texOffs(71, 22).addBox(-3.0F, -35.0F, -3.0F, 6.0F, 2.0F, 2.0F, new CubeDeformation(0.0F))
-                .texOffs(73, 20).addBox(1.0F, -35.0F, -1.0F, 2.0F, 2.0F, 4.0F, new CubeDeformation(0.0F))
-                .texOffs(69, 22).addBox(-5.0F, -31.0F, 5.0F, 8.0F, 2.0F, 2.0F, new CubeDeformation(0.0F))
-                .texOffs(71, 18).addBox(3.0F, -31.0F, 1.0F, 2.0F, 2.0F, 6.0F, new CubeDeformation(0.0F))
-                .texOffs(69, 16).addBox(-5.0F, -31.0F, -3.0F, 2.0F, 2.0F, 8.0F, new CubeDeformation(0.0F))
-                .texOffs(75, 22).addBox(-1.0F, -27.0F, 1.0F, 2.0F, 2.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 26.0F, -2.0F));
+        PartDefinition spiral = partdefinition.addOrReplaceChild("spiral", CubeListBuilder.create().texOffs(75, 18).addBox(-1.0F, -26.5F, -1.0F, 2.0F, 6.0F, 2.0F, new CubeDeformation(0.0F))
+                .texOffs(75, 20).addBox(-5.0F, -30.5F, -5.0F, 2.0F, 4.0F, 2.0F, new CubeDeformation(0.0F))
+                .texOffs(71, 22).addBox(-1.0F, -26.5F, -3.0F, 6.0F, 2.0F, 2.0F, new CubeDeformation(0.0F))
+                .texOffs(71, 22).addBox(-3.0F, -30.5F, -5.0F, 6.0F, 2.0F, 2.0F, new CubeDeformation(0.0F))
+                .texOffs(73, 20).addBox(1.0F, -30.5F, -3.0F, 2.0F, 2.0F, 4.0F, new CubeDeformation(0.0F))
+                .texOffs(69, 22).addBox(-5.0F, -26.5F, 3.0F, 8.0F, 2.0F, 2.0F, new CubeDeformation(0.0F))
+                .texOffs(71, 18).addBox(3.0F, -26.5F, -1.0F, 2.0F, 2.0F, 6.0F, new CubeDeformation(0.0F))
+                .texOffs(69, 16).addBox(-5.0F, -26.5F, -5.0F, 2.0F, 2.0F, 8.0F, new CubeDeformation(0.0F))
+                .texOffs(75, 22).addBox(-1.0F, -22.5F, -1.0F, 2.0F, 2.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 21.5F, 0.0F));
 
         PartDefinition head = partdefinition.addOrReplaceChild("head", CubeListBuilder.create().texOffs(17, 0).addBox(-5.0F, -14.5F, -4.4973F, 10.0F, 9.0F, 8.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 21.5F, 0.0F));
 
-        PartDefinition cube_r1 = head.addOrReplaceChild("cube_r1", CubeListBuilder.create().texOffs(0, 16).addBox(-3.0F, -5.6041F, 3.7226F, 6.0F, 3.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, -7.5F, -1.4973F, 0.6632F, 0.0F, 0.0F));
+        PartDefinition cube_r1 = head.addOrReplaceChild("cube_r1", CubeListBuilder.create().texOffs(0, 16).addBox(-3.0F, -5.6041F, 2.8973F, 6.0F, 3.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, -7.5F, -1.4973F, 0.6196F, 0.0F, 0.0F));
 
         PartDefinition chest = partdefinition.addOrReplaceChild("chest", CubeListBuilder.create().texOffs(19, 18).addBox(-3.0F, 0.0F, -3.2473F, 6.0F, 6.0F, 6.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 16.0F, -0.25F));
 
@@ -125,12 +125,19 @@ public abstract class ChaoModel<T extends Entity> extends EntityModel<T> {
 
     //Reset bone positions to ensure the chao animates properly for each animation switch
     public void resetAnimations() {
+        this.sphere.xRot = 0.0F;
+        this.heart.xRot = 0.0F;
+        this.exclamation.xRot = 0.0F;
+        this.question.xRot = 0.0F;
+        this.spiral.xRot = 0.0F;
         this.head.xRot = 0.0F;
         this.chest.xRot = 0.0F;
         this.left_arm.xRot = 0.0F;
         this.right_arm.xRot = 0.0F;
         this.left_foot.xRot = 0.0F;
         this.right_foot.xRot = 0.0F;
+        this.left_foot.setPos(1.0F, 24.0F, 0.0F); // Adjust these coordinates as per the default position
+        this.right_foot.setPos(-1.0F, 24.0F, 0.0F); // Adjust these coordinates as per the default position
     }
 
     //Helper method to set visible of emoteballs
@@ -144,15 +151,26 @@ public abstract class ChaoModel<T extends Entity> extends EntityModel<T> {
 
     // Animation methods
     public void setCrawlAnimation(float limbSwing, float limbSwingAmount) {
-        this.head.xRot = 0.52F; // 78 degrees to simulate head tilt //0.5236
-        this.chest.xRot = 0.40F; // 90 degrees to simulate horizontal position
-        this.left_arm.xRot = Mth.cos(limbSwing * 0.6662F) * 0.6F * limbSwingAmount;
-        this.right_arm.xRot = Mth.cos(limbSwing * 0.6662F) * 0.6F * limbSwingAmount;
-        this.left_foot.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * -1.8584f * limbSwingAmount;
-        this.right_foot.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * -1.8584f * limbSwingAmount;
+        resetAnimations();
+        this.sphere.xRot = 0.52F;
+        this.heart.xRot = 0.52F;
+        this.exclamation.xRot = 0.52F;
+        this.question.xRot = 0.52F;
+        this.spiral.xRot = 0.52F;
+        this.head.xRot = 0.52F;
+        this.chest.xRot = 0.40F;
+        this.left_arm.xRot = Mth.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount;
+        this.right_arm.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * 1.4F * limbSwingAmount;
+        this.left_foot.setPos(0.0F, 22.0F, 3.0F);
+        this.right_foot.setPos(0.0F, 22.0F, 3.0F);
+        this.left_foot.xRot = (float)Math.PI + Mth.cos(limbSwing * 1.0F) * 1.5F * limbSwingAmount;
+        this.right_foot.xRot = (float)Math.PI + Mth.cos(limbSwing * 1.0F + (float)Math.PI) * 1.5F * limbSwingAmount;
+        this.left_foot.zRot = Mth.cos(limbSwing * 1.0F) * 0.8F * limbSwingAmount;
+        this.right_foot.zRot = Mth.cos(limbSwing * 1.0F + (float)Math.PI) * 0.8F * limbSwingAmount;
     }
 
     public void setWalkAnimation(float limbSwing, float limbSwingAmount) {
+        resetAnimations();
         this.head.xRot = 0.0F;
         this.chest.xRot = 0.0F;
         this.left_arm.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * 2.0F * limbSwingAmount * 0.5F;
@@ -162,42 +180,64 @@ public abstract class ChaoModel<T extends Entity> extends EntityModel<T> {
     }
 
     public void setSwimAnimation1(float limbSwing, float limbSwingAmount) {
-        this.head.xRot = 0.7854F; // 78 degrees to simulate head tilt
-        this.chest.xRot = 1.5708F; // 90 degrees to simulate horizontal position
-        this.left_arm.xRot = Mth.cos(limbSwing * 0.6662F) * 0.6F * limbSwingAmount;
-        this.right_arm.xRot = Mth.cos(limbSwing * 0.6662F) * 0.6F * limbSwingAmount;
-        this.left_foot.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * -1.8584f * limbSwingAmount;
-        this.right_foot.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * -1.8584f * limbSwingAmount;
+        resetAnimations();
+        this.sphere.xRot = 0.52F;
+        this.heart.xRot = 0.52F;
+        this.exclamation.xRot = 0.52F;
+        this.question.xRot = 0.52F;
+        this.spiral.xRot = 0.52F;
+        this.head.xRot = 0.52F;
+        this.chest.xRot = 0.40F;
+        this.left_arm.xRot = Mth.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount;
+        this.right_arm.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * 1.4F * limbSwingAmount;
+        this.left_foot.setPos(0.0F, 22.0F, 3.0F);
+        this.right_foot.setPos(0.0F, 22.0F, 3.0F);
+        this.left_foot.xRot = (float)Math.PI + Mth.cos(limbSwing * 1.0F) * 1.5F * limbSwingAmount;
+        this.right_foot.xRot = (float)Math.PI + Mth.cos(limbSwing * 1.0F + (float)Math.PI) * 1.5F * limbSwingAmount;
+        this.left_foot.zRot = Mth.cos(limbSwing * 1.0F) * 0.8F * limbSwingAmount;
+        this.right_foot.zRot = Mth.cos(limbSwing * 1.0F + (float)Math.PI) * 0.8F * limbSwingAmount;
     }
 
     // Unused second swim animation, yet to be tweaked
     public void setSwimAnimation2(float limbSwing, float limbSwingAmount) {
-        this.head.xRot = 0.7854F; // 78 degrees to simulate head tilt
-        this.chest.xRot = 1.5708F; // 90 degrees to simulate horizontal position
+        resetAnimations();
+        this.sphere.xRot = 0.7854F;
+        this.heart.xRot = 0.7854F;
+        this.exclamation.xRot = 0.7854F;
+        this.question.xRot = 0.7854F;
+        this.spiral.xRot = 0.7854F;
+        this.head.xRot = 0.7854F; // Head tilt
+        this.chest.xRot = 1.5708F; // Horizontal position
         this.left_arm.xRot = Mth.cos(limbSwing * 0.6662F) * 0.6F * limbSwingAmount;
         this.right_arm.xRot = Mth.cos(limbSwing * 0.6662F) * 0.6F * limbSwingAmount;
-        this.left_foot.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * -1.8584f * limbSwingAmount;
-        this.right_foot.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * -1.8584f * limbSwingAmount;
+        this.left_foot.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * -1.8584F * limbSwingAmount;
+        this.right_foot.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * -1.8584F * limbSwingAmount;
     }
 
     // Struggling swim animation
     public void setStruggleSwimAnimation(float limbSwing, float limbSwingAmount) {
+        resetAnimations();
         this.head.xRot = 0F;
         this.chest.xRot = 0F;
         this.left_arm.xRot = Mth.cos(limbSwing * 0.6662F) * 1.8F * limbSwingAmount;
         this.right_arm.xRot = Mth.cos(limbSwing * 0.6662F) * 1.8F * limbSwingAmount;
-        this.left_foot.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * -1.8584f * limbSwingAmount;
-        this.right_foot.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * -1.8584f * limbSwingAmount;
+        this.left_foot.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * -1.8584F * limbSwingAmount;
+        this.right_foot.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * -1.8584F * limbSwingAmount;
     }
 
     // Unused water tread animation, yet to be implemented
-    public void setTreadWaterAnimation() {
-        this.head.xRot = 0F; // 90 degrees to simulate horizontal position
-        this.chest.xRot = 0F; // 90 degrees to simulate horizontal position
+    public void setTreadWaterAnimation(float limbSwing, float limbSwingAmount) {
+        resetAnimations();
+        this.head.xRot = 0F;
+        this.chest.xRot = 0F;
         this.left_arm.xRot = Mth.cos(2.0F) * 0.2F * 0.5F;
         this.right_arm.xRot = Mth.cos(2.0F) * 0.2F * 0.5F;
-        this.left_foot.xRot = Mth.cos(2.0F) * 0.2F * 0.5F;
-        this.right_foot.xRot = Mth.cos(2.0F) * 0.2F * 0.5F;
+       // this.left_foot.setPos(0.0F, 22.0F, 3.0F);
+      //  this.right_foot.setPos(0.0F, 22.0F, 3.0F);
+        this.left_foot.xRot = (float)Math.PI + Mth.cos(limbSwing * 1.0F) * 1.5F * limbSwingAmount;
+        this.right_foot.xRot = (float)Math.PI + Mth.cos(limbSwing * 1.0F + (float)Math.PI) * 1.5F * limbSwingAmount;
+        this.left_foot.zRot = Mth.cos(limbSwing * 1.0F) * 0.8F * limbSwingAmount;
+        this.right_foot.zRot = Mth.cos(limbSwing * 1.0F + (float)Math.PI) * 0.8F * limbSwingAmount;
     }
 
 }

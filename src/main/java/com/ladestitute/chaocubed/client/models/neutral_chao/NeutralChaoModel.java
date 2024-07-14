@@ -1,6 +1,7 @@
 package com.ladestitute.chaocubed.client.models.neutral_chao;
 
 import com.ladestitute.chaocubed.client.models.helper.ChaoModel;
+import com.ladestitute.chaocubed.entities.base.TestAmphiChaoEntity;
 import com.ladestitute.chaocubed.entities.chao.NeutralChaoEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -25,9 +26,10 @@ public class NeutralChaoModel extends ChaoModel<NeutralChaoEntity> {
 
         if (entity.isInWater())
         {
+            //||entity.getDeltaMovement().lengthSqr() == 0
             if(entity.getDeltaMovement().lengthSqr() < 0.0001)
             {
-                setTreadWaterAnimation();
+                setTreadWaterAnimation(limbSwing, limbSwingAmount);
             }
             else if (entity.swim_points >= 100) {
 
@@ -38,7 +40,7 @@ public class NeutralChaoModel extends ChaoModel<NeutralChaoEntity> {
                 setStruggleSwimAnimation(limbSwing, limbSwingAmount);
             }
         } else {
-            if(entity.run_points >= 50) {
+            if(entity.getEntityData().get(TestAmphiChaoEntity.RUN_POINTS) >= 50) {
                 setWalkAnimation(limbSwing, limbSwingAmount);
             }
             else setCrawlAnimation(limbSwing, limbSwingAmount);
@@ -47,8 +49,10 @@ public class NeutralChaoModel extends ChaoModel<NeutralChaoEntity> {
 
     @Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
-        int tickCount = (int) Minecraft.getInstance().level.getGameTime();
-        applyEmoteballWobble(poseStack, tickCount);
+      //  int tickCount = (int) Minecraft.getInstance().level.getGameTime();
+
+         //   applyEmoteballWobble(poseStack, tickCount);
+
         sphere.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
 
         heart.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
@@ -69,7 +73,8 @@ public class NeutralChaoModel extends ChaoModel<NeutralChaoEntity> {
 
     private void applyEmoteballWobble(PoseStack poseStack, int tickCount) {
         // Add wobble effect logic
+        PoseStack spherewobble = poseStack;
         float wobbleAmount = Mth.sin((float) (tickCount + Minecraft.getInstance().getFrameTime()) / 10.0F) * 0.05F;
-        poseStack.translate(0.0D, wobbleAmount, 0.0D);
+        spherewobble.translate(0.0D, wobbleAmount, 0.0D);
     }
 }

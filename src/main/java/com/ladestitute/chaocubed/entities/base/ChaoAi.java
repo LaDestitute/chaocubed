@@ -3,14 +3,8 @@ package com.ladestitute.chaocubed.entities.base;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.ladestitute.chaocubed.ChaoCubedMain;
-import com.ladestitute.chaocubed.registry.ChaoCubedEntityTypes;
 import com.mojang.datafixers.util.Pair;
-import java.util.Optional;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.TagKey;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -19,16 +13,17 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.behavior.declarative.BehaviorBuilder;
-import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.schedule.Activity;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
+
+import java.util.Optional;
 
 public class ChaoAi {
     private static final UniformInt ADULT_FOLLOW_RANGE = UniformInt.of(10, 35);
+    private static final ChaoFollowOwnerBehavior FOLLOW_OWNER_BEHAVIOR = new ChaoFollowOwnerBehavior();
+    public static final ChaoSitWhenOrderedBehavior SIT_WHEN_ORDERED_BEHAVIOR = new ChaoSitWhenOrderedBehavior();
 
     protected static Brain<?> makeBrain(Brain<TestAmphiChaoEntity> pBrain) {
         initCoreActivity(pBrain);
@@ -39,7 +34,7 @@ public class ChaoAi {
         pBrain.useDefaultActivity();
         return pBrain;
     }
-    
+
     static void initFightActivity(Brain<TestAmphiChaoEntity> pBrain) {
         pBrain.addActivityAndRemoveMemoryWhenStopped(
                 Activity.FIGHT,
@@ -93,7 +88,9 @@ public class ChaoAi {
                                                 Pair.of(RandomStroll.stroll(0.63F, true), 2), // increased time on land
                                                 Pair.of(SetWalkTargetFromLookTarget.create(ChaoAi::canSetWalkTargetFromLookTarget, ChaoAi::getSpeedModifier, 3), 3),
                                                 Pair.of(BehaviorBuilder.triggerIf(Entity::isInWaterOrBubble), 3), // reduced water behavior
-                                                Pair.of(BehaviorBuilder.triggerIf(Entity::onGround), 5)
+                                                Pair.of(BehaviorBuilder.triggerIf(Entity::onGround), 5),
+                                                Pair.of(FOLLOW_OWNER_BEHAVIOR, 1), // Add follow owner behavior
+                                                Pair.of(SIT_WHEN_ORDERED_BEHAVIOR, 1) // Add sit when ordered behavior
                                         )
                                 )
                         )
@@ -112,9 +109,9 @@ public class ChaoAi {
         }
     }
 
-    public static void updateActivity(TestAmphiChaoEntity pTestAmphiChaoEntity) {
-        Brain<TestAmphiChaoEntity> brain = pTestAmphiChaoEntity.getBrain();
-            brain.setActiveActivityToFirstValid(ImmutableList.of(Activity.FIGHT, Activity.IDLE));
+    public static void updateActivity(TestAmphiChaoEntity entity) {
+        Brain<TestAmphiChaoEntity> brain = (Brain<TestAmphiChaoEntity>) entity.getBrain();
+        brain.setActiveActivityToFirstValid(ImmutableList.of(Activity.FIGHT, Activity.IDLE));
     }
 
     private static float getSpeedModifierChasing(LivingEntity p_149289_) {
@@ -130,11 +127,9 @@ public class ChaoAi {
     }
 
     private static Optional<? extends LivingEntity> findNearestValidAttackTarget(TestAmphiChaoEntity p_149299_) {
-        if (p_149299_.isTame() && p_149299_.getOwner().getLastHurtMob() != null) {
+        if (p_149299_.isTame() && p_149299_.getOwner() != null && p_149299_.getOwner().getLastHurtMob() != null) {
             return Optional.of(p_149299_.getOwner().getLastHurtMob());
         }
         return Optional.empty();
     }
-
-
 }

@@ -1,14 +1,14 @@
 package com.ladestitute.chaocubed.entities.base;
 
-import com.google.common.collect.ImmutableList;
 import com.ladestitute.chaocubed.ChaoCubedConfig;
 import com.ladestitute.chaocubed.ChaoCubedMain;
 import com.ladestitute.chaocubed.util.ChaoVariant;
-import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.game.DebugPackets;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -21,53 +21,24 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectUtil;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.control.SmoothSwimmingLookControl;
-import net.minecraft.world.entity.ai.control.SmoothSwimmingMoveControl;
-import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.navigation.AmphibiousPathNavigation;
-import net.minecraft.world.entity.ai.navigation.PathNavigation;
-import net.minecraft.world.entity.ai.sensing.Sensor;
-import net.minecraft.world.entity.ai.sensing.SensorType;
+import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 
 public abstract class TestAmphiChaoEntity extends TamableAnimal {
-    protected static final ImmutableList<? extends SensorType<? extends Sensor<? super TestAmphiChaoEntity>>> SENSOR_TYPES = ImmutableList.of(
-            SensorType.NEAREST_LIVING_ENTITIES, SensorType.NEAREST_ADULT, SensorType.HURT_BY, SensorType.AXOLOTL_ATTACKABLES, SensorType.AXOLOTL_TEMPTATIONS
-    );
-    protected static final ImmutableList<? extends MemoryModuleType<?>> MEMORY_TYPES = ImmutableList.of(
-            MemoryModuleType.NEAREST_LIVING_ENTITIES,
-            MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
-            MemoryModuleType.NEAREST_VISIBLE_PLAYER,
-            MemoryModuleType.LOOK_TARGET,
-            MemoryModuleType.WALK_TARGET,
-            MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
-            MemoryModuleType.PATH,
-            MemoryModuleType.ATTACK_TARGET,
-            MemoryModuleType.ATTACK_COOLING_DOWN,
-            MemoryModuleType.NEAREST_ATTACKABLE,
-            MemoryModuleType.TEMPTING_PLAYER,
-            MemoryModuleType.TEMPTATION_COOLDOWN_TICKS,
-            MemoryModuleType.IS_TEMPTED,
-            MemoryModuleType.IS_PANICKING
-    );
-
     private ChaoVariant variant;
     public int run_points;
     public int swim_points;
     public boolean shiny;
+    public static final EntityDataAccessor<Integer> RUN_POINTS = SynchedEntityData.defineId(TestAmphiChaoEntity.class, EntityDataSerializers.INT);
 
     // Note: the damage threshold for a chao's happiness reduction
     // should be its max health divided by 2.12 (rounded down)
@@ -81,10 +52,6 @@ public abstract class TestAmphiChaoEntity extends TamableAnimal {
     protected TestAmphiChaoEntity(EntityType<? extends TamableAnimal> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
         this.setTame(false);
-        this.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
-        this.moveControl = new TestAmphiChaoEntity.ChaoMoveControl(this);
-        this.lookControl = new TestAmphiChaoEntity.ChaoLookControl(this, 20);
-        this.setMaxUpStep(1.0F);
         this.variant = ChaoVariant.NORMAL;
     }
 
@@ -97,6 +64,7 @@ public abstract class TestAmphiChaoEntity extends TamableAnimal {
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
+        this.entityData.define(RUN_POINTS, 0);
     }
 
     @Override
@@ -112,7 +80,18 @@ public abstract class TestAmphiChaoEntity extends TamableAnimal {
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        // Add custom goals here if needed
+        this.goalSelector.addGoal(1, new FloatGoal(this));
+        this.goalSelector.addGoal(2, new SitWhenOrderedToGoal(this));
+        this.goalSelector.addGoal(3, new RandomStrollGoal(this, 1) {
+            @Override
+            public boolean canUse() {
+                return super.canUse() && TestAmphiChaoEntity.this.random.nextFloat() <= 0.50;
+            }
+        });
+        this.goalSelector.addGoal(3, new RandomSwimmingGoal(this,0,1));
+        this.goalSelector.addGoal(4, new MeleeAttackGoal(this, 1.2, false));
+        this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(6, new FollowOwnerGoal(this, 1.0D, 10.0F, 2.0F, false));
     }
 
     @Override
@@ -122,95 +101,18 @@ public abstract class TestAmphiChaoEntity extends TamableAnimal {
         this.handleAirSupply(airSupply);
     }
 
-    //Brain code starts here
-    @Override
-    protected Brain.Provider<TestAmphiChaoEntity> brainProvider() {
-        return Brain.provider(MEMORY_TYPES, SENSOR_TYPES);
-    }
-
-    @Override
-    protected Brain<?> makeBrain(Dynamic<?> pDynamic) {
-        return ChaoAi.makeBrain(this.brainProvider().makeBrain(pDynamic));
-    }
-
-    @Override
-    public Brain<TestAmphiChaoEntity> getBrain() {
-        return (Brain<TestAmphiChaoEntity>)super.getBrain();
-    }
-
-    @Override
-    protected void sendDebugPackets() {
-        super.sendDebugPackets();
-        DebugPackets.sendEntityBrain(this);
-    }
-
-    @Override
-    protected void customServerAiStep() {
-        this.level().getProfiler().push("chaoBrain");
-        this.getBrain().tick((ServerLevel)this.level(), this);
-        this.level().getProfiler().pop();
-        this.level().getProfiler().push("chaoActivityUpdate");
-        ChaoAi.updateActivity(this);
-        this.level().getProfiler().pop();
-    }
-
-    //Brain code ends here
-
-    //Pathfinding code starts here
-    @Override
-    public float getWalkTargetValue(BlockPos pPos, LevelReader pLevel) {
-        return 0.0F;
-    }
-
-    @Override
     public void travel(Vec3 pTravelVector) {
-        if (this.isInWater()) {
-            // Swimming behavior
-//            if (this.isControlledByLocalInstance()) {
-//                this.moveRelative(this.getSpeed(), pTravelVector);
-//                this.move(MoverType.SELF, this.getDeltaMovement());
-//                this.setDeltaMovement(this.getDeltaMovement().scale(0.9));
-//            } else {
-//                super.travel(pTravelVector);
-//            }
-            if (this.getRandom().nextFloat() >= 0.2F) {
-                this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.02D, 0.0D)); // Buoyancy for floating
+        if (this.isAlive()) {
                 super.travel(pTravelVector);
-            }
-            this.moveRelative(0.1F, pTravelVector); // Swim
-            super.travel(pTravelVector);
-        } else {
-            // Behavior when on land
-            super.travel(pTravelVector);
         }
     }
-
-    @Override
-    protected PathNavigation createNavigation(Level pLevel) {
-        return new AmphibiousPathNavigation(this, pLevel);
-    }
-
-    static class ChaoMoveControl extends SmoothSwimmingMoveControl {
-        private final TestAmphiChaoEntity chao;
-
-        public ChaoMoveControl(TestAmphiChaoEntity pChao) {
-            super(pChao, 85, 10, 1F, 1F, false);
-            this.chao = pChao;
-        }
-
-        @Override
-        public void tick() {
-            super.tick();
-        }
-    }
-    //Pathfinding code starts here
 
     /**
      * Plays living's sound at its position
      */
     @Override
     public void playAmbientSound() {
-            super.playAmbientSound();
+        super.playAmbientSound();
 
     }
 
@@ -336,11 +238,6 @@ public abstract class TestAmphiChaoEntity extends TamableAnimal {
     //Air supply and breathing AI related code ends here
 
     @Override
-    public boolean checkSpawnObstruction(LevelReader pLevel) {
-        return pLevel.isUnobstructed(this);
-    }
-
-    @Override
     public boolean isPushedByFluid() {
         return false;
     }
@@ -421,81 +318,46 @@ public abstract class TestAmphiChaoEntity extends TamableAnimal {
     }
 
     @Override
-    protected void usePlayerItem(Player pPlayer, InteractionHand pHand, ItemStack pStack) {
-            super.usePlayerItem(pPlayer, pHand, pStack);
-    }
-
-    @Override
     public boolean removeWhenFarAway(double pDistanceToClosestPlayer) {
-        return !this.isTame() | !this.hasCustomName();
-    }
-
-    class ChaoLookControl extends SmoothSwimmingLookControl {
-        public ChaoLookControl(TestAmphiChaoEntity pChao, int pMaxYRotFromCenter) {
-            super(pChao, pMaxYRotFromCenter);
-        }
-
-        /**
-         * Updates look
-         */
-        @Override
-        public void tick() {
-                super.tick();
-        }
-    }
-
-    @Override
-    public InteractionResult mobInteract(Player pPlayer, InteractionHand pHand) {
-        ItemStack itemstack = pPlayer.getItemInHand(pHand);
-        if (this.isTame()) {
-            if (this.isOwnedBy(pPlayer)) {
-                if (this.isFood(itemstack) && this.getHealth() < this.getMaxHealth()) {
-                    if (!this.level().isClientSide()) {
-                        FoodProperties foodproperties = itemstack.getFoodProperties(this);
-                        this.heal(foodproperties != null ? (float)foodproperties.getNutrition() : 1.0F);
-                        this.usePlayerItem(pPlayer, pHand, itemstack);
-                    }
-
-                    return InteractionResult.sidedSuccess(this.level().isClientSide());
-                }
-
-                InteractionResult interactionresult = super.mobInteract(pPlayer, pHand);
-                if (!interactionresult.consumesAction()) {
-                    this.setOrderedToSit(!this.isOrderedToSit());
-                    return InteractionResult.sidedSuccess(this.level().isClientSide());
-                }
-
-                return interactionresult;
-            }
-        } else if (this.isFood(itemstack)) {
-            if (!this.level().isClientSide()) {
-                this.usePlayerItem(pPlayer, pHand, itemstack);
-                this.tryToTame(pPlayer);
-                this.setPersistenceRequired();
-            }
-
-            return InteractionResult.sidedSuccess(this.level().isClientSide());
-        }
-
-        InteractionResult interactionresult1 = super.mobInteract(pPlayer, pHand);
-        if (interactionresult1.consumesAction()) {
-            this.setPersistenceRequired();
-        }
-
-        return interactionresult1;
-    }
-
-    private void tryToTame(Player pPlayer) {
-            this.tame(pPlayer);
-            this.navigation.stop();
-            this.setTarget(null);
-            this.setOrderedToSit(true);
-            this.level().broadcastEntityEvent(this, (byte)7);
+        return false;
     }
 
     @Override
     public int getMaxSpawnClusterSize() {
         return ChaoCubedConfig.maxChaoGroupSize;
+    }
+
+    @Override
+    public InteractionResult mobInteract(Player player, InteractionHand hand) {
+        ItemStack itemStack = player.getItemInHand(hand);
+        if (this.isTame()) {
+            if (itemStack.isEmpty() && player.isCrouching()) {
+                this.setOrderedToSit(!this.isOrderedToSit());
+                return InteractionResult.sidedSuccess(this.level().isClientSide);
+            } else if (itemStack.is(CHAO_FRUIT) && this.getHealth() < this.getMaxHealth()) {
+                if (!player.getAbilities().instabuild) {
+                    itemStack.shrink(1);
+                }
+                this.heal(5.0F);
+                return InteractionResult.sidedSuccess(this.level().isClientSide);
+            }
+        } else if (itemStack.is(CHAO_FRUIT)) {
+            if (!player.getAbilities().instabuild) {
+                itemStack.shrink(1);
+            }
+            if (!this.level().isClientSide) {
+                if (this.random.nextInt(2) == 0) {
+                    this.tame(player);
+                    this.navigation.stop();
+                    this.setTarget(null);
+                    this.level().broadcastEntityEvent(this, (byte) 7);
+                } else {
+                    this.level().broadcastEntityEvent(this, (byte) 6);
+                }
+            }
+            return InteractionResult.sidedSuccess(this.level().isClientSide);
+        }
+        return super.mobInteract(player, hand);
     }
 
 }

@@ -27,7 +27,7 @@ public class NeutralChaoEntity extends TestAmphiChaoEntity {
         {
             this.setVariant(ChaoVariant.SHINY_NORMAL_TWOTONE);
             this.swim_points=100;
-            this.run_points=100;
+            this.entityData.set(RUN_POINTS, 50);
         }
         else this.setVariant(ChaoVariant.NORMAL_TWOTONE);
         this.getAttribute(NeoForgeMod.SWIM_SPEED.value()).setBaseValue(1.0D);
