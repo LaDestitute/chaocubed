@@ -43,15 +43,16 @@ public class ChaoBiomeModifier implements BiomeModifier {
 //                }
 
                 if (biome.is(Biomes.MANGROVE_SWAMP) || biome.is(Biomes.SWAMP) || biome.is(Biomes.SPARSE_JUNGLE) ||
-                        biome.is(Biomes.SUNFLOWER_PLAINS) || biome.is(Biomes.PLAINS) || biome.is(Biomes.MEADOW)) {
+                        biome.is(Biomes.SUNFLOWER_PLAINS) || biome.is(Biomes.PLAINS) || biome.is(Biomes.MEADOW) ||
+                        biome.is(Biomes.FOREST)) {
 
                     if (random.nextInt(6) == 0) {
                         builder.getMobSpawnSettings().getSpawner(MobCategory.CREATURE).add(
-                                new MobSpawnSettings.SpawnerData(ChaoCubedEntityTypes.NEUTRAL_CHAO.get(), 15, 4, 8)
+                                new MobSpawnSettings.SpawnerData(ChaoCubedEntityTypes.NEUTRAL_CHAO.get(), 20, 4, 8)
                         );
                     } else {
                         builder.getMobSpawnSettings().getSpawner(MobCategory.CREATURE).add(
-                                new MobSpawnSettings.SpawnerData(ChaoCubedEntityTypes.NEUTRAL_CHAO.get(), 15, 2, 4)
+                                new MobSpawnSettings.SpawnerData(ChaoCubedEntityTypes.NEUTRAL_CHAO.get(), 20, 2, 4)
                         );
                     }
                 }
@@ -59,11 +60,11 @@ public class ChaoBiomeModifier implements BiomeModifier {
                 if (biome.is(Biomes.RIVER)) {
                     if (random.nextInt(6) == 0) {
                         builder.getMobSpawnSettings().getSpawner(MobCategory.CREATURE).add(
-                                new MobSpawnSettings.SpawnerData(ChaoCubedEntityTypes.NEUTRAL_CHAO.get(), 7, 4, 8)
+                                new MobSpawnSettings.SpawnerData(ChaoCubedEntityTypes.NEUTRAL_CHAO.get(), 9, 4, 8)
                         );
                     } else {
                         builder.getMobSpawnSettings().getSpawner(MobCategory.CREATURE).add(
-                                new MobSpawnSettings.SpawnerData(ChaoCubedEntityTypes.NEUTRAL_CHAO.get(), 7, 2, 4)
+                                new MobSpawnSettings.SpawnerData(ChaoCubedEntityTypes.NEUTRAL_CHAO.get(), 9, 2, 4)
                         );
                     }
                 }

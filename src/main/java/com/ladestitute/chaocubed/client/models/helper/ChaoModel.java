@@ -8,7 +8,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 
 public abstract class ChaoModel<T extends Entity> extends EntityModel<T> {
-    // Boilerplate chao model class that all chao inherit
+    // Boilerplate chao model class that all chao will inherit or use as a basis
     // Rendering to buffer, animation setup using setup-anim and body layer creation is done in each custom chao model class
 
     protected final ModelPart sphere;
@@ -198,7 +198,6 @@ public abstract class ChaoModel<T extends Entity> extends EntityModel<T> {
         this.right_foot.zRot = Mth.cos(limbSwing * 1.0F + (float)Math.PI) * 0.8F * limbSwingAmount;
     }
 
-    // Unused second swim animation, yet to be tweaked
     public void setSwimAnimation2(float limbSwing, float limbSwingAmount) {
         resetAnimations();
         this.sphere.xRot = 0.7854F;
@@ -214,7 +213,6 @@ public abstract class ChaoModel<T extends Entity> extends EntityModel<T> {
         this.right_foot.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * -1.8584F * limbSwingAmount;
     }
 
-    // Struggling swim animation
     public void setStruggleSwimAnimation(float limbSwing, float limbSwingAmount) {
         resetAnimations();
         this.head.xRot = 0F;
@@ -225,15 +223,12 @@ public abstract class ChaoModel<T extends Entity> extends EntityModel<T> {
         this.right_foot.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * -1.8584F * limbSwingAmount;
     }
 
-    // Unused water tread animation, yet to be implemented
     public void setTreadWaterAnimation(float limbSwing, float limbSwingAmount) {
         resetAnimations();
         this.head.xRot = 0F;
         this.chest.xRot = 0F;
         this.left_arm.xRot = Mth.cos(2.0F) * 0.2F * 0.5F;
         this.right_arm.xRot = Mth.cos(2.0F) * 0.2F * 0.5F;
-       // this.left_foot.setPos(0.0F, 22.0F, 3.0F);
-      //  this.right_foot.setPos(0.0F, 22.0F, 3.0F);
         this.left_foot.xRot = (float)Math.PI + Mth.cos(limbSwing * 1.0F) * 1.5F * limbSwingAmount;
         this.right_foot.xRot = (float)Math.PI + Mth.cos(limbSwing * 1.0F + (float)Math.PI) * 1.5F * limbSwingAmount;
         this.left_foot.zRot = Mth.cos(limbSwing * 1.0F) * 0.8F * limbSwingAmount;
