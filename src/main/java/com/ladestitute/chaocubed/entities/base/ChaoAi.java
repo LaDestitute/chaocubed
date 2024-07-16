@@ -5,6 +5,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
+import net.minecraft.util.Mth;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -16,12 +18,15 @@ import net.minecraft.world.entity.ai.behavior.declarative.BehaviorBuilder;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
 import java.util.Optional;
@@ -79,7 +84,7 @@ public class ChaoAi {
                                 )
                         ),
                         Pair.of(3, StartAttacking.create(ChaoAi::findNearestValidAttackTarget)),
-                        Pair.of(3, TryFindWater.create(5, 1F)),
+                        Pair.of(3, TryFindWater.create(3, 1F)),
                         Pair.of(
                                 4,
                                 new GateBehavior<>(
@@ -276,6 +281,129 @@ public class ChaoAi {
         @Override
         public void stop() {
             this.chao.setOrderedToSit(false);
+        }
+    }
+
+    public static class ClimbGoal extends Goal {
+        private final ChaoEntity chao;
+
+        public ClimbGoal(ChaoEntity chao) {
+            this.chao = chao;
+            this.setFlags(EnumSet.of(Goal.Flag.MOVE));
+        }
+
+        @Override
+        public boolean canUse() {
+            return canClimbBlock();
+        }
+
+        private boolean canClimbBlock() {
+            BlockPos pos = chao.blockPosition();
+            int powerPoints = chao.getPowerPoints();
+            return powerPoints >= 200 && chao.onGround() && !chao.isInWater() && isTwoBlocksHigh(pos);
+        }
+
+        private boolean isTwoBlocksHigh(BlockPos pos) {
+            for (int i = 1; i <= 2; i++) {
+                if (chao.level().getBlockState(pos.above(i)).isAir() && !chao.level().getBlockState(pos.above(i - 1)).isAir()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public void tick() {
+            if(chao.getEntityData().get(ChaoEntity.FLYING))
+            {
+                return;
+            }
+            double climbSpeed = 0.05D;
+            int powerPoints = chao.getPowerPoints();
+            if (powerPoints >= 800) {
+                climbSpeed *= 2.0;
+            } else if (powerPoints >= 400) {
+                climbSpeed *= 1.5;
+            }
+            chao.setDeltaMovement(chao.getDeltaMovement().add(0.0D, climbSpeed, 0.0D));
+
+            // Rotate to face the block while climbing
+            BlockPos blockPosInFront = chao.blockPosition().relative(chao.getDirection());
+            double dx = blockPosInFront.getX() - chao.getX();
+            double dz = blockPosInFront.getZ() - chao.getZ();
+            float targetYaw = (float) (Math.atan2(dz, dx) * (180F / Math.PI)) - 90.0F;
+            chao.setYRot(targetYaw);
+            chao.yHeadRot = targetYaw;
+        }
+    }
+
+    public static class FlyGoal extends Goal {
+        private final ChaoEntity chao;
+        private int flyTime;
+        private final int maxFlyTime;
+        private static final double BASE_FLY_SPEED = 0.1;
+        private static final double GLIDE_ANGLE = 0.05;
+
+        public FlyGoal(ChaoEntity chao) {
+            this.chao = chao;
+            this.maxFlyTime = calculateMaxFlyTime();
+        }
+
+        private int calculateMaxFlyTime() {
+            int flyingPoints = chao.getFlyPoints();
+            if (flyingPoints >= 200) {
+                return chao.getFlyTime() + ((flyingPoints - 200) / 100) * 40; // 2 seconds base + 2 seconds for each 100 points over 200
+            }
+            return 0;
+        }
+
+        @Override
+        public boolean canUse() {
+            return !chao.onGround() && !chao.isInWater() && chao.getFlyPoints() >= 200;
+        }
+
+        @Override
+        public void start() {
+            this.flyTime = 0;
+        }
+
+        @Override
+        public void stop() {
+            chao.getNavigation().stop();
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return this.flyTime < this.maxFlyTime && !chao.onGround() && !chao.isInWater();
+        }
+
+        @Override
+        public void tick() {
+            this.flyTime++;
+            double flyingSpeed = BASE_FLY_SPEED;
+            int flyingPoints = chao.getFlyPoints();
+
+            if (flyingPoints >= 800) {
+                flyingSpeed *= 2;
+            } else if (flyingPoints >= 400) {
+                flyingSpeed *= 1.5;
+            }
+
+            Vec3 currentMotion = chao.getDeltaMovement();
+            if(chao.onGround())
+            {
+                chao.getEntityData().set(ChaoEntity.FLYING, false);
+            }
+            if (this.flyTime < this.maxFlyTime) {
+                // Flying
+                chao.getEntityData().set(ChaoEntity.FLYING, true);
+                chao.setDeltaMovement(currentMotion.x * flyingSpeed, currentMotion.y, currentMotion.z * flyingSpeed);
+            } else {
+                // Gliding
+                double glideSpeedX = currentMotion.x + (GLIDE_ANGLE * Math.signum(currentMotion.x));
+                double glideSpeedZ = currentMotion.z + (GLIDE_ANGLE * Math.signum(currentMotion.z));
+                chao.setDeltaMovement(glideSpeedX, -0.1, glideSpeedZ);
+            }
         }
     }
 }
