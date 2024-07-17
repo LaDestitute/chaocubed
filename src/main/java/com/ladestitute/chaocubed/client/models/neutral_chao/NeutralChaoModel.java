@@ -8,11 +8,17 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Quaternionf;
-import org.joml.Vector3f;
 
 public class NeutralChaoModel extends ChaoModel<NeutralChaoEntity> {
+
+    private long lastSwitchTime = 0;
+    private boolean useSwimAnimation1 = true;
 
     public NeutralChaoModel(ModelPart root) {
         super(root);
@@ -22,40 +28,52 @@ public class NeutralChaoModel extends ChaoModel<NeutralChaoEntity> {
         return ChaoModel.createBodyLayer();
     }
 
-   @Override
+    @Override
     public void setupAnim(NeutralChaoEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         resetAnimations();
-
         if (entity.isInWater()) {
             if (entity.getDeltaMovement().lengthSqr() == 0) {
                 setTreadWaterAnimation(limbSwing, limbSwingAmount);
-            } else if (entity.getEntityData().get(ChaoEntity.SWIM_POINTS) >= 50)
-            {
-                setSwimAnimation1(limbSwing, limbSwingAmount);
-
-            }
-            else {
+            } else if (entity.getEntityData().get(ChaoEntity.SWIM_POINTS) >= 50) {
+                long currentTime = System.currentTimeMillis();
+                if (currentTime - lastSwitchTime >= 7500) {
+                    useSwimAnimation1 = !useSwimAnimation1;
+                    lastSwitchTime = currentTime;
+                }
+                if (useSwimAnimation1) {
+                    setSwimAnimation1(limbSwing, limbSwingAmount);
+                } else {
+                    setSwimAnimation2(limbSwing, limbSwingAmount);
+                }
+            } else {
                 setStruggleSwimAnimation(limbSwing, limbSwingAmount);
-
             }
+        } else if (entity.onGround()) {
+            if (entity.getEntityData().get(ChaoEntity.RUN_POINTS) >= 50) {
+                setWalkAnimation(limbSwing, limbSwingAmount);
+            } else {
+                setCrawlAnimation(limbSwing, limbSwingAmount);
+            }
+        } else if (entity.getFlyPoints() >= 200 && !isTGrass(entity.level(), entity.blockPosition()) && entity.getDeltaMovement().y < 0.5) {
+            setFlyAnimation(limbSwing, limbSwingAmount);
         }
-       if (!entity.isInWater()) {
-           if (entity.getEntityData().get(ChaoEntity.RUN_POINTS) >= 50) {
-               setWalkAnimation(limbSwing, limbSwingAmount);
-           } else {
-               setCrawlAnimation(limbSwing, limbSwingAmount);
-           }
-       }
+    }
+
+    private static boolean isTGrass(Level world, BlockPos pos) {
+        BlockState blockState = world.getBlockState(pos);
+        return isGrass(blockState);
+    }
+
+    private static boolean isGrass(BlockState blockState) {
+        return blockState.is(Blocks.TALL_GRASS) ||
+                blockState.is(Blocks.SHORT_GRASS);
     }
 
     @Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         int tickCount = (int) Minecraft.getInstance().level.getGameTime();
-
-        // Save the current state of the pose stack
         poseStack.pushPose();
 
-        // Apply wobble effect to the sphere part only
         applyEmoteballWobble(poseStack, tickCount);
         sphere.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
         heart.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
@@ -63,10 +81,8 @@ public class NeutralChaoModel extends ChaoModel<NeutralChaoEntity> {
         spiral.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
         exclamation.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
 
-        // Restore the previous state of the pose stack
         poseStack.popPose();
 
-        // Render the rest of the parts without wobble
         chest.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
         right_arm.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
         left_arm.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
@@ -92,11 +108,10 @@ public class NeutralChaoModel extends ChaoModel<NeutralChaoEntity> {
 
     private void applyEmoteballWobble(PoseStack poseStack, int tickCount) {
         float frameTime = Minecraft.getInstance().getFrameTime();
-        float time = (float) (tickCount + frameTime) / 10.0F;
+        float time = (tickCount + frameTime) / 10.0F;
 
-        // Use sin and cos to create a circular motion
         float wobbleX = Mth.sin(time) * 0.05F;
-        float wobbleY = Mth.sin(time * 1.5F) * 0.075F; // Different frequency for variation
+        float wobbleY = Mth.sin(time * 1.5F) * 0.075F;
         float wobbleZ = Mth.cos(time) * 0.05F;
 
         poseStack.translate(wobbleX, wobbleY, wobbleZ);
@@ -104,12 +119,11 @@ public class NeutralChaoModel extends ChaoModel<NeutralChaoEntity> {
 
     private void applyWingAnimation(PoseStack poseStack, int tickCount, boolean isLeftWing) {
         float frameTime = Minecraft.getInstance().getFrameTime();
-        float time = (float) (tickCount + frameTime) / 5.0F;
+        float time = (tickCount + frameTime) / 5.0F;
 
-        // Wing flapping motion using sin wave
-        float wingAngle = Mth.sin(time) * 5.0F; // Adjust the multiplier for the desired flapping intensity
+        float wingAngle = Mth.sin(time) * 5.0F;
         if (!isLeftWing) {
-            wingAngle = -wingAngle; // Inverse the angle for the right wing
+            wingAngle = -wingAngle;
         }
 
         Quaternionf rotation = new Quaternionf().rotateZ((float) Math.toRadians(wingAngle));

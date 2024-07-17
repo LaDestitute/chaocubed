@@ -16,5 +16,4 @@ public class ChaoCubedEntityTypes {
             EntityType.Builder.of(NeutralChaoEntity::new, MobCategory.CREATURE)
                     .sized(1F, 1F).setShouldReceiveVelocityUpdates(true)
                     .build(ChaoCubedMain.MODID + "neutral_chao"));
-
 }

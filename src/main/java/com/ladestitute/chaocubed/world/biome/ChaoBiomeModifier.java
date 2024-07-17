@@ -23,7 +23,6 @@ import java.util.Random;
 public class ChaoBiomeModifier implements BiomeModifier {
     public static final ChaoBiomeModifier INSTANCE = new ChaoBiomeModifier();
 
-
     @Override
     public void modify(Holder<Biome> biome, Phase phase, ModifiableBiomeInfo.BiomeInfo.Builder builder) {
         Random random = new Random();
@@ -72,7 +71,6 @@ public class ChaoBiomeModifier implements BiomeModifier {
         }
     }
 
-
     public static boolean scanNearbyChunksForSmallWater(Level level, BlockPos origin, int radius) {
         ChunkPos originChunkPos = new ChunkPos(origin);
 
@@ -93,7 +91,7 @@ public class ChaoBiomeModifier implements BiomeModifier {
 
     private static boolean chunkContainsBodiesofWater(LevelChunk chunk) {
         int waterBlockCount = 0;
-        int maxWaterBlocksForSmallBody = 50; // Needs adjustment, will take 25ish samples to build a moderate size
+        int maxWaterBlocksForSmallBody = 50; // Todo: needs adjustment, will take 25ish samples to build a moderate size
 
         for (BlockPos pos : chunk.getBlockEntitiesPos()) {
             if (chunk.getBlockState(pos).is(Blocks.WATER)) {
@@ -105,7 +103,7 @@ public class ChaoBiomeModifier implements BiomeModifier {
             }
         }
 
-        // Return true if there are water blocks and they are below the threshold
+        // Return true if there are water blocks, and they are below the threshold
         return waterBlockCount > 0 && waterBlockCount <= maxWaterBlocksForSmallBody;
     }
 

@@ -1,4 +1,6 @@
 {
-    "item.chaocubed.normal_twotone_chao_egg": "Normal Twotone Chao Egg",
+    "itemGroup.chaocubed_eggs": "ChaoCubed Eggs",
+	"entity.chaocubed.neutral_chao": "Normal Twotone Chao",
+	"item.chaocubed.neutral_chao_spawn_egg": "Normal Twotone Chao Spawn Egg",
 	"item.chaocubed.chao_garden_fruit": "Chao Garden Fruit"
 }

@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Vec3i;
+import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.Entity;
@@ -18,10 +18,8 @@ import net.minecraft.world.entity.ai.behavior.declarative.BehaviorBuilder;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
-import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
@@ -286,6 +284,7 @@ public class ChaoAi {
 
     public static class ClimbGoal extends Goal {
         private final ChaoEntity chao;
+        private static final double BASE_CLIMB_SPEED = 0.10D;
 
         public ClimbGoal(ChaoEntity chao) {
             this.chao = chao;
@@ -314,26 +313,34 @@ public class ChaoAi {
 
         @Override
         public void tick() {
-            if(chao.getEntityData().get(ChaoEntity.FLYING))
-            {
-                return;
-            }
-            double climbSpeed = 0.05D;
+            double climbSpeed = BASE_CLIMB_SPEED;
             int powerPoints = chao.getPowerPoints();
             if (powerPoints >= 800) {
                 climbSpeed *= 2.0;
             } else if (powerPoints >= 400) {
                 climbSpeed *= 1.5;
             }
+            if(!chao.level().isClientSide()) {
+                if (chao.onGround()) {
+                    chao.getEntityData().set(ChaoEntity.CLIMBING, false);
+                } else chao.getEntityData().set(ChaoEntity.CLIMBING, true);
+            }
             chao.setDeltaMovement(chao.getDeltaMovement().add(0.0D, climbSpeed, 0.0D));
 
-            // Rotate to face the block while climbing
-            BlockPos blockPosInFront = chao.blockPosition().relative(chao.getDirection());
-            double dx = blockPosInFront.getX() - chao.getX();
-            double dz = blockPosInFront.getZ() - chao.getZ();
-            float targetYaw = (float) (Math.atan2(dz, dx) * (180F / Math.PI)) - 90.0F;
-            chao.setYRot(targetYaw);
-            chao.yHeadRot = targetYaw;
+            // Get the block direction they're climbing against (NSWE) and make them auto-rotate
+            BlockPos pos = chao.blockPosition();
+            Direction direction = Direction.NORTH; // Default direction
+            for (Direction dir : Direction.Plane.HORIZONTAL) {
+                if (!chao.level().getBlockState(pos.relative(dir)).isAir()) {
+                    direction = dir;
+                    break;
+                }
+            }
+            chao.setYRot(direction.toYRot());
+
+            if (chao.level().getBlockState(pos.above()).isAir() && !chao.level().isClientSide()) {
+                chao.getEntityData().set(ChaoEntity.FLYING, false);
+            }
         }
     }
 
@@ -352,7 +359,7 @@ public class ChaoAi {
         private int calculateMaxFlyTime() {
             int flyingPoints = chao.getFlyPoints();
             if (flyingPoints >= 200) {
-                return chao.getFlyTime() + ((flyingPoints - 200) / 100) * 40; // 2 seconds base + 2 seconds for each 100 points over 200
+                return chao.getBaseFlyTime() + ((flyingPoints - 200) / 100) * 40; // 2 seconds base + 2 seconds for each 100 points over 200
             }
             return 0;
         }
@@ -364,7 +371,9 @@ public class ChaoAi {
 
         @Override
         public void start() {
-            this.flyTime = 0;
+            if(!chao.level().isClientSide()) {
+                this.chao.setFlyTime(0);
+            }
         }
 
         @Override
@@ -374,36 +383,69 @@ public class ChaoAi {
 
         @Override
         public boolean canContinueToUse() {
-            return this.flyTime < this.maxFlyTime && !chao.onGround() && !chao.isInWater();
+            return chao.getFlyTime() < this.maxFlyTime && !chao.onGround() && !chao.isInWater();
         }
 
         @Override
         public void tick() {
-            this.flyTime++;
+            if(!chao.level().isClientSide()) {
+                chao.setFlyTime(flyTime++);
+            }
+            System.out.println("CHAO'S Y DELTA MOVEMENT IS: " + chao.getDeltaMovement().y);
             double flyingSpeed = BASE_FLY_SPEED;
             int flyingPoints = chao.getFlyPoints();
 
-            if (flyingPoints >= 800) {
+            if (flyingPoints >= 2400) {
+                flyingSpeed *= 4;
+            } else if (flyingPoints >= 2000) {
+                flyingSpeed *= 3.5;
+            } else if (flyingPoints >= 1600) {
+                flyingSpeed *= 3;
+            } else if (flyingPoints >= 1200) {
+                flyingSpeed *= 2.5;
+            } else if (flyingPoints >= 800) {
                 flyingSpeed *= 2;
             } else if (flyingPoints >= 400) {
                 flyingSpeed *= 1.5;
             }
 
             Vec3 currentMotion = chao.getDeltaMovement();
-            if(chao.onGround())
-            {
-                chao.getEntityData().set(ChaoEntity.FLYING, false);
+            if (chao.onGround() && !chao.level().isClientSide()) {
+                chao.setFlying(false);
             }
-            if (this.flyTime < this.maxFlyTime) {
-                // Flying
-                chao.getEntityData().set(ChaoEntity.FLYING, true);
+            if (chao.getFlyTime() < this.maxFlyTime) {
+                if(!chao.level().isClientSide()) {
+                    chao.setFlying(true);
+                }
                 chao.setDeltaMovement(currentMotion.x * flyingSpeed, currentMotion.y, currentMotion.z * flyingSpeed);
+
+                // Check for +2 block obstruction and transition to climbing
+                BlockPos pos = chao.blockPosition();
+                if (isTwoBlocksHigh(pos)) {
+                    chao.getEntityData().set(ChaoEntity.FLYING, false);
+                    chao.goalSelector.addGoal(1, new ClimbGoal(chao));
+                }
+
             } else {
-                // Gliding
                 double glideSpeedX = currentMotion.x + (GLIDE_ANGLE * Math.signum(currentMotion.x));
                 double glideSpeedZ = currentMotion.z + (GLIDE_ANGLE * Math.signum(currentMotion.z));
                 chao.setDeltaMovement(glideSpeedX, -0.1, glideSpeedZ);
             }
+
+            // Update rotation to face the flying direction
+            Vec3 motion = chao.getDeltaMovement();
+            if (motion.length() > 0.1) {
+                chao.setYRot((float) (Mth.atan2(motion.z, motion.x) * (180F / Math.PI)) - 90F);
+            }
+        }
+
+        private boolean isTwoBlocksHigh(BlockPos pos) {
+            for (int i = 1; i <= 2; i++) {
+                if (chao.level().getBlockState(pos.above(i)).isAir() && !chao.level().getBlockState(pos.above(i - 1)).isAir()) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

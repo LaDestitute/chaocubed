@@ -192,25 +192,29 @@ public abstract class ChaoModel<T extends Entity> extends EntityModel<T> {
         this.right_arm.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * 1.4F * limbSwingAmount;
         this.left_foot.setPos(0.0F, 22.0F, 3.0F);
         this.right_foot.setPos(0.0F, 22.0F, 3.0F);
-        this.left_foot.xRot = (float)Math.PI + Mth.cos(limbSwing * 1.0F) * 1.5F * limbSwingAmount;
-        this.right_foot.xRot = (float)Math.PI + Mth.cos(limbSwing * 1.0F + (float)Math.PI) * 1.5F * limbSwingAmount;
-        this.left_foot.zRot = Mth.cos(limbSwing * 1.0F) * 0.8F * limbSwingAmount;
-        this.right_foot.zRot = Mth.cos(limbSwing * 1.0F + (float)Math.PI) * 0.8F * limbSwingAmount;
+        this.left_foot.xRot = (float)Math.PI + Mth.cos(limbSwing) * 1.125F * limbSwingAmount;
+        this.right_foot.xRot = (float)Math.PI + Mth.cos(limbSwing + (float)Math.PI) * 1.125F * limbSwingAmount;
+        this.left_foot.zRot = Mth.cos(limbSwing) * 0.6F * limbSwingAmount;
+        this.right_foot.zRot = Mth.cos(limbSwing + (float)Math.PI) * 0.6F * limbSwingAmount;
     }
 
     public void setSwimAnimation2(float limbSwing, float limbSwingAmount) {
         resetAnimations();
-        this.sphere.xRot = 0.7854F;
-        this.heart.xRot = 0.7854F;
-        this.exclamation.xRot = 0.7854F;
-        this.question.xRot = 0.7854F;
-        this.spiral.xRot = 0.7854F;
-        this.head.xRot = 0.7854F; // Head tilt
-        this.chest.xRot = 1.5708F; // Horizontal position
-        this.left_arm.xRot = Mth.cos(limbSwing * 0.6662F) * 0.6F * limbSwingAmount;
-        this.right_arm.xRot = Mth.cos(limbSwing * 0.6662F) * 0.6F * limbSwingAmount;
-        this.left_foot.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * -1.8584F * limbSwingAmount;
-        this.right_foot.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * -1.8584F * limbSwingAmount;
+        this.sphere.xRot = 0.52F;
+        this.heart.xRot = 0.52F;
+        this.exclamation.xRot = 0.52F;
+        this.question.xRot = 0.52F;
+        this.spiral.xRot = 0.52F;
+        this.head.xRot = 0.52F;
+        this.chest.xRot = 0.40F;
+        this.left_arm.xRot = Mth.cos(limbSwing * 1.3324F) * 1.2F * limbSwingAmount + 0.5F * Mth.sin(limbSwing * 1.5F);
+        this.right_arm.xRot = Mth.cos(limbSwing * 1.3324F) * 1.2F * limbSwingAmount - 0.5F * Mth.sin(limbSwing * 1.5F);
+        this.left_foot.setPos(0.0F, 22.0F, 3.0F);
+        this.right_foot.setPos(0.0F, 22.0F, 3.0F);
+        this.left_foot.xRot = Mth.cos(limbSwing * 1.3324F + (float)Math.PI) * -2.8584F * limbSwingAmount + 0.5F * Mth.sin(limbSwing * 1.5F);
+        this.right_foot.xRot = Mth.cos(limbSwing * 1.3324F + (float)Math.PI) * -2.8584F * limbSwingAmount - 0.5F * Mth.sin(limbSwing * 1.5F);
+        this.left_foot.zRot = Mth.cos(limbSwing * 1.0F) * 1.0F * limbSwingAmount + 0.3F * Mth.sin(limbSwing * 1.5F);
+        this.right_foot.zRot = Mth.cos(limbSwing * 1.0F + (float)Math.PI) * 1.0F * limbSwingAmount - 0.3F * Mth.sin(limbSwing * 1.5F);
     }
 
     public void setStruggleSwimAnimation(float limbSwing, float limbSwingAmount) {
@@ -229,10 +233,25 @@ public abstract class ChaoModel<T extends Entity> extends EntityModel<T> {
         this.chest.xRot = 0F;
         this.left_arm.xRot = Mth.cos(2.0F) * 0.2F * 0.5F;
         this.right_arm.xRot = Mth.cos(2.0F) * 0.2F * 0.5F;
-        this.left_foot.xRot = (float)Math.PI + Mth.cos(limbSwing * 1.0F) * 1.5F * limbSwingAmount;
-        this.right_foot.xRot = (float)Math.PI + Mth.cos(limbSwing * 1.0F + (float)Math.PI) * 1.5F * limbSwingAmount;
-        this.left_foot.zRot = Mth.cos(limbSwing * 1.0F) * 0.8F * limbSwingAmount;
-        this.right_foot.zRot = Mth.cos(limbSwing * 1.0F + (float)Math.PI) * 0.8F * limbSwingAmount;
+        this.left_foot.xRot = (float)Math.PI + Mth.cos(limbSwing) * 1.5F * limbSwingAmount;
+        this.right_foot.xRot = (float)Math.PI + Mth.cos(limbSwing + (float)Math.PI) * 1.5F * limbSwingAmount;
+        this.left_foot.zRot = Mth.cos(limbSwing) * 0.8F * limbSwingAmount;
+        this.right_foot.zRot = Mth.cos(limbSwing + (float)Math.PI) * 0.8F * limbSwingAmount;
+    }
+
+    public void setFlyAnimation(float limbSwing, float limbSwingAmount) {
+        resetAnimations();
+        this.sphere.xRot = 0.52F;
+        this.heart.xRot = 0.52F;
+        this.exclamation.xRot = 0.52F;
+        this.question.xRot = 0.52F;
+        this.spiral.xRot = 0.52F;
+        this.head.xRot = 0.52F;
+        this.chest.xRot = 0.40F;
+        this.left_arm.xRot = Mth.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount;
+        this.right_arm.xRot = Mth.cos(limbSwing * 0.6662F + (float)Math.PI) * 1.4F * limbSwingAmount;
+        this.left_foot.setPos(0.0F, 22.0F, 3.0F);
+        this.right_foot.setPos(0.0F, 22.0F, 3.0F);
     }
 
 }

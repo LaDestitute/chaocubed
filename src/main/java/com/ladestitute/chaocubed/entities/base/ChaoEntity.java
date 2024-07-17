@@ -19,7 +19,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
-import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -27,17 +26,13 @@ import net.minecraft.world.effect.MobEffectUtil;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.control.SmoothSwimmingLookControl;
 import net.minecraft.world.entity.ai.control.SmoothSwimmingMoveControl;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.navigation.AmphibiousPathNavigation;
-import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
-import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
-import net.minecraft.world.entity.animal.axolotl.Axolotl;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -77,8 +72,10 @@ public abstract class ChaoEntity extends TamableAnimal {
     public static final EntityDataAccessor<Integer> FLY_POINTS = SynchedEntityData.defineId(ChaoEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Integer> POWER_POINTS = SynchedEntityData.defineId(ChaoEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Boolean> SHINY = SynchedEntityData.defineId(ChaoEntity.class, EntityDataSerializers.BOOLEAN);
-    public static final EntityDataAccessor<Integer> FLY_TIME = SynchedEntityData.defineId(ChaoEntity.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Integer> BASE_FLY_TIME = SynchedEntityData.defineId(ChaoEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Boolean> FLYING = SynchedEntityData.defineId(ChaoEntity.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> CLIMBING = SynchedEntityData.defineId(ChaoEntity.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Integer> FLY_TIME = SynchedEntityData.defineId(ChaoEntity.class, EntityDataSerializers.INT);
 
     private ChaoVariant variant;
     private boolean dancingChao;
@@ -111,7 +108,6 @@ public abstract class ChaoEntity extends TamableAnimal {
     public ChaoVariant getVariant() {
         return this.variant;
     }
-
     public void setVariant(ChaoVariant variant) {
         this.variant = variant;
     }
@@ -124,8 +120,6 @@ public abstract class ChaoEntity extends TamableAnimal {
         this.goalSelector.addGoal(2, new ChaoAi.CustomFollowOwnerGoal(this, 1.0D, 10.0F, 2.0F, false));
         this.goalSelector.addGoal(3, new ChaoAi.ClimbGoal(this));
         this.goalSelector.addGoal(4, new ChaoAi.FlyGoal(this));
-
-
     }
 
     //Tick stuff
@@ -136,6 +130,7 @@ public abstract class ChaoEntity extends TamableAnimal {
         this.handleAirSupply(airSupply);
     }
 
+    //WIP Chao dancing to jukeboxes
     @Override
     public void aiStep() {
         if (this.jukebox == null || !this.jukebox.closerToCenterThan(this.position(), 3.46) || !this.level().getBlockState(this.jukebox).is(Blocks.JUKEBOX)) {
@@ -155,6 +150,7 @@ public abstract class ChaoEntity extends TamableAnimal {
     public boolean isDancingChao() {
         return this.dancingChao;
     }
+    //WIP Chao dancing to jukeboxes
 
     //Synced data
     @Override
@@ -166,8 +162,10 @@ public abstract class ChaoEntity extends TamableAnimal {
         this.entityData.define(FLY_POINTS, 0);
         this.entityData.define(ORDERED_TO_SIT, false);
         this.entityData.define(SHINY, false);
+        this.entityData.define(BASE_FLY_TIME, 200);
         this.entityData.define(FLY_TIME, 200);
         this.entityData.define(FLYING, false);
+        this.entityData.define(CLIMBING, false);
     }
 
     @Override
@@ -179,8 +177,10 @@ public abstract class ChaoEntity extends TamableAnimal {
         pCompound.putInt("Power_Points", this.entityData.get(POWER_POINTS));
         pCompound.putBoolean("Ordered_To_Sit", this.entityData.get(ORDERED_TO_SIT));
         pCompound.putBoolean("Shiny", this.entityData.get(SHINY));
-        pCompound.putInt("FlyTime", this.getFlyTime());
+        pCompound.putInt("BaseFlyTime", this.entityData.get(BASE_FLY_TIME));
+        pCompound.putInt("FlyTime", this.entityData.get(FLY_TIME));
         pCompound.putBoolean("Flying", this.entityData.get(FLYING));
+        pCompound.putBoolean("Climbing", this.entityData.get(CLIMBING));
     }
 
     @Override
@@ -192,12 +192,18 @@ public abstract class ChaoEntity extends TamableAnimal {
         this.entityData.set(POWER_POINTS, pCompound.getInt("Power_Points"));
         this.entityData.set(ORDERED_TO_SIT, pCompound.getBoolean("Ordered_To_Sit"));
         this.entityData.set(SHINY, pCompound.getBoolean("Shiny"));
-        this.setFlyTime(pCompound.getInt("FlyTime"));
+        this.entityData.set(BASE_FLY_TIME, pCompound.getInt("BaseFlyTime"));
+        this.entityData.set(FLY_TIME, pCompound.getInt("FlyTime"));
         this.entityData.set(FLYING, pCompound.getBoolean("Flying"));
+        this.entityData.set(CLIMBING, pCompound.getBoolean("Climbing"));
+    }
+
+    public int getBaseFlyTime() {
+        return this.entityData.get(BASE_FLY_TIME);
     }
 
     public int getFlyTime() {
-        return this.entityData.get(FLY_TIME);
+        return this.entityData.get(BASE_FLY_TIME);
     }
 
     public int getFlyPoints() {
@@ -208,6 +214,17 @@ public abstract class ChaoEntity extends TamableAnimal {
         return this.entityData.get(FLY_POINTS);
     }
 
+    public int getRunPoints() {
+        return this.entityData.get(RUN_POINTS);
+    }
+
+    public int getSwimPoints() {
+        return this.entityData.get(SWIM_POINTS);
+    }
+
+    public void setFlying(boolean flying) {
+        this.entityData.set(FLYING, flying);
+    }
 
     public void setFlyTime(int flyTime) {
         this.entityData.set(FLY_TIME, flyTime);
@@ -286,20 +303,6 @@ public abstract class ChaoEntity extends TamableAnimal {
         }
     }
 
-//    static class ChaoMoveControl extends SmoothSwimmingMoveControl {
-//        private final ChaoEntity axolotl;
-//
-//        public ChaoMoveControl(ChaoEntity pAxolotl) {
-//            super(pAxolotl, 85, 10, 1F, 1F, false);
-//            this.axolotl = pAxolotl;
-//        }
-//
-//        @Override
-//        public void tick() {
-//                super.tick();
-//        }
-//    }
-
     @Override
     public boolean checkSpawnObstruction(LevelReader pLevel) {
         return pLevel.isUnobstructed(this);
@@ -318,15 +321,6 @@ public abstract class ChaoEntity extends TamableAnimal {
         if (!this.level().isClientSide && this.getEntityData().get(POWER_POINTS) >= 200) {
             this.setClimbing(this.horizontalCollision);
         }
-    }
-
-    @Override
-    public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
-        if(this.getEntityData().get(FLY_POINTS) >= 200)
-        {
-            return false;
-        }
-        else return true;
     }
 
     @Override
@@ -353,6 +347,15 @@ public abstract class ChaoEntity extends TamableAnimal {
     //Flying code
     public boolean isFlying() {
         return !this.onGround();
+    }
+
+    @Override
+    public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
+        if(this.getEntityData().get(FLY_POINTS) >= 200)
+        {
+            return false;
+        }
+        else return true;
     }
     //Flying code
 
@@ -442,8 +445,6 @@ public abstract class ChaoEntity extends TamableAnimal {
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
-
-        // Check if the item is in the tag list
         boolean isHealingItem = itemstack.is(CHAO_FRUIT);
         boolean isHandEmpty = itemstack.isEmpty();
 
@@ -547,7 +548,6 @@ public abstract class ChaoEntity extends TamableAnimal {
     @Override
     public void playAmbientSound() {
         super.playAmbientSound();
-
     }
 
     @Nullable

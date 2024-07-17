@@ -3,9 +3,14 @@ package com.ladestitute.chaocubed;
 import com.ladestitute.chaocubed.entities.chao.NeutralChaoEntity;
 import com.ladestitute.chaocubed.registry.ChaoCubedBiomeModifiers;
 import com.ladestitute.chaocubed.registry.ChaoCubedEntityTypes;
+import com.ladestitute.chaocubed.registry.ChaoCubedItems;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.model.geom.ModelLayerLocation;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -18,6 +23,8 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -31,6 +38,15 @@ public class ChaoCubedMain
 
     //Required due to using a parent abstract superclass for the models
     public static final ModelLayerLocation NEUTRAL_CHAO_LAYER = new ModelLayerLocation(new ResourceLocation("chaocubed", "neutral_chao"), "main");
+    public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
+
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> CHAOCUBED_EGGS = CREATIVE_MODE_TABS.register("chaocubed_eggs", () -> CreativeModeTab.builder()
+            .title(Component.translatable("itemGroup.chaocubed_eggs")) //The language key for the title of your CreativeModeTab
+            .withTabsBefore(CreativeModeTabs.COMBAT)
+            .icon(() -> ChaoCubedItems.NEUTRAL_CHAO_SPAWN_EGG.get().getDefaultInstance())
+            .displayItems((parameters, output) -> {
+                output.accept(ChaoCubedItems.NEUTRAL_CHAO_SPAWN_EGG.get()); // Add the example item to the tab. For your own tabs, this method is preferred over the event
+            }).build());
 
     // The constructor for the mod class is the first code that is run when your mod is loaded.
     // FML will recognize some parameter types like IEventBus or ModContainer and pass them in automatically.
@@ -42,6 +58,8 @@ public class ChaoCubedMain
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ChaoCubedConfig.SPEC);
 
+        ChaoCubedItems.ITEMS.register(modEventBus);
+        CREATIVE_MODE_TABS.register(modEventBus);
         ChaoCubedEntityTypes.ENTITY_TYPES.register(modEventBus);
         modEventBus.addListener(this::addAttributes);
         ChaoCubedBiomeModifiers.BIOME_MODIFIER_SERIALIZERS.register(modEventBus);
